@@ -15,17 +15,17 @@ export function Header({ activeTab, onTabChange }: HeaderProps) {
         alt="" 
         className="absolute inset-0 w-full h-full object-cover"
         style={{
-          filter: "brightness(0.3) blur(1px)",
+          filter: "brightness(0.7)",
         }}
         aria-hidden="true"
       />
       <div 
-        className="absolute inset-0 bg-gradient-to-l from-background/80 via-background/60 to-transparent"
+        className="absolute inset-0 bg-background/40"
       />
       <div 
         className="absolute inset-0"
         style={{
-          background: "linear-gradient(180deg, rgba(0, 255, 255, 0.05) 0%, transparent 50%, rgba(0, 255, 136, 0.05) 100%)",
+          background: "linear-gradient(180deg, rgba(0, 255, 255, 0.08) 0%, transparent 50%, rgba(0, 255, 136, 0.08) 100%)",
         }}
       />
       <div className="relative max-w-6xl mx-auto px-4 py-3">
@@ -49,10 +49,10 @@ export function Header({ activeTab, onTabChange }: HeaderProps) {
           <nav className="flex items-center gap-2" data-testid="nav-tabs">
             <button
               onClick={() => onTabChange("draft")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 backdrop-blur-md ${
                 activeTab === "draft"
-                  ? "bg-neon-cyan/20 neon-border-cyan text-neon-cyan neon-glow-cyan"
-                  : "bg-white/5 border border-white/10 text-muted-foreground hover:bg-white/10"
+                  ? "bg-neon-cyan/30 neon-border-cyan text-neon-cyan neon-glow-cyan"
+                  : "bg-background/60 border border-white/20 text-white hover:bg-background/80"
               }`}
               data-testid="button-tab-draft"
             >
@@ -61,10 +61,10 @@ export function Header({ activeTab, onTabChange }: HeaderProps) {
             </button>
             <button
               onClick={() => onTabChange("coach")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 backdrop-blur-md ${
                 activeTab === "coach"
-                  ? "bg-neon-magenta/20 neon-border-magenta text-neon-magenta neon-glow-magenta"
-                  : "bg-white/5 border border-white/10 text-muted-foreground hover:bg-white/10"
+                  ? "bg-neon-magenta/30 neon-border-magenta text-neon-magenta neon-glow-magenta"
+                  : "bg-background/60 border border-white/20 text-white hover:bg-background/80"
               }`}
               data-testid="button-tab-coach"
             >
@@ -73,10 +73,10 @@ export function Header({ activeTab, onTabChange }: HeaderProps) {
             </button>
             <button
               onClick={() => onTabChange("live")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 backdrop-blur-md ${
                 activeTab === "live"
-                  ? "bg-neon-green/20 neon-border-green text-neon-green neon-glow-green"
-                  : "bg-white/5 border border-white/10 text-muted-foreground hover:bg-white/10"
+                  ? "bg-neon-green/30 neon-border-green text-neon-green neon-glow-green"
+                  : "bg-background/60 border border-white/20 text-white hover:bg-background/80"
               }`}
               data-testid="button-tab-live"
             >
