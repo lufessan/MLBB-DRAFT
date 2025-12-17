@@ -1,4 +1,3 @@
-import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { LogIn } from "lucide-react";
@@ -8,15 +7,40 @@ interface WelcomeProps {
 }
 
 export default function Welcome({ onEnter }: WelcomeProps) {
-  const [, setLocation] = useLocation();
-
-  const handleEnter = () => {
-    onEnter();
-    setLocation("/app");
-  };
-
   return (
     <div className="relative min-h-screen w-full overflow-hidden" data-testid="page-welcome">
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <div 
+          className="absolute"
+          style={{
+            top: "-60px",
+            left: "-60px",
+            right: "-60px",
+            bottom: "-60px",
+          }}
+        >
+          <iframe
+            src="https://www.youtube.com/embed/ufflAtVLHK0?autoplay=1&mute=1&loop=1&playlist=ufflAtVLHK0&controls=0&showinfo=0&rel=0&modestbranding=1&vq=hd720&disablekb=1&fs=0&iv_load_policy=3"
+            title="Welcome Video"
+            className="w-full h-full"
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%) scale(1.2)",
+              width: "177.78vh",
+              height: "100vh",
+              minWidth: "100%",
+              minHeight: "56.25vw",
+              pointerEvents: "none",
+              border: "none",
+            }}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            data-testid="video-background"
+          />
+        </div>
+      </div>
+      
       <div 
         className="absolute inset-0 z-10"
         style={{
@@ -50,7 +74,7 @@ export default function Welcome({ onEnter }: WelcomeProps) {
           transition={{ duration: 0.5, delay: 1 }}
         >
           <Button
-            onClick={handleEnter}
+            onClick={onEnter}
             size="lg"
             className="px-12 py-6 text-xl bg-gradient-to-r from-neon-cyan to-neon-green hover:opacity-90 text-black font-bold rounded-2xl shadow-lg"
             style={{
