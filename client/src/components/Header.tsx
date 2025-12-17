@@ -1,10 +1,10 @@
-import { Gamepad2, MessageCircle, Radio } from "lucide-react";
+import { Gamepad2, MessageCircle, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import mlLogo from "@assets/13_1765989336653.png";
 
 interface HeaderProps {
-  activeTab: "draft" | "coach" | "live";
-  onTabChange: (tab: "draft" | "coach" | "live") => void;
+  activeTab: "draft" | "coach" | "chat";
+  onTabChange: (tab: "draft" | "coach" | "chat") => void;
 }
 
 export function Header({ activeTab, onTabChange }: HeaderProps) {
@@ -38,9 +38,9 @@ export function Header({ activeTab, onTabChange }: HeaderProps) {
             <img 
               src={mlLogo} 
               alt="Mobile Legends Bang Bang" 
-              className="relative h-12 md:h-16 w-auto object-contain"
+              className="relative h-16 md:h-24 w-auto object-contain"
               style={{
-                filter: "drop-shadow(0 0 10px rgba(0, 255, 255, 0.4)) drop-shadow(0 0 20px rgba(0, 255, 136, 0.2))"
+                filter: "drop-shadow(0 0 15px rgba(0, 255, 255, 0.5)) drop-shadow(0 0 30px rgba(0, 255, 136, 0.3))"
               }}
               data-testid="img-logo"
             />
@@ -72,16 +72,16 @@ export function Header({ activeTab, onTabChange }: HeaderProps) {
               <span>المدرب الذكي</span>
             </button>
             <button
-              onClick={() => onTabChange("live")}
+              onClick={() => onTabChange("chat")}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 backdrop-blur-md ${
-                activeTab === "live"
-                  ? "bg-neon-green/30 neon-border-green text-neon-green neon-glow-green"
+                activeTab === "chat"
+                  ? "bg-neon-purple/30 neon-border-purple text-neon-purple neon-glow-purple"
                   : "bg-background/60 border border-white/20 text-white hover:bg-background/80"
               }`}
-              data-testid="button-tab-live"
+              data-testid="button-tab-chat"
             >
-              <Radio className="w-4 h-4" />
-              <span>LIVE</span>
+              <Sparkles className="w-4 h-4" />
+              <span>الخبير الأسطوري</span>
             </button>
           </nav>
         </div>

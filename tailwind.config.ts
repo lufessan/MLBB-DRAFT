@@ -18,6 +18,7 @@ export default {
           magenta: "#ff00ff",
           green: "#00ff88",
           orange: "#ff8800",
+          purple: "#8a2be2",
         },
         background: "hsl(var(--background) / <alpha-value>)",
         foreground: "hsl(var(--foreground) / <alpha-value>)",
