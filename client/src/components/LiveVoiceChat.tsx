@@ -325,6 +325,8 @@ export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
   useEffect(() => {
     const loadVoices = () => {
       const voices = window.speechSynthesis.getVoices();
+      if (voices.length === 0) return;
+      
       setAvailableVoices(voices);
       
       const arabicVoice = voices.find(voice => 
@@ -334,19 +336,21 @@ export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
       );
       setHasArabicVoice(!!arabicVoice);
       
-      if (!arabicVoice && voices.length > 0) {
+      if (arabicVoice) {
+        console.log("Arabic voice found:", arabicVoice.name, arabicVoice.lang);
+      } else if (voices.length > 0) {
         console.warn("No Arabic voice found. Available voices:", voices.map(v => `${v.name} (${v.lang})`));
       }
     };
 
     if (window.speechSynthesis) {
+      window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
       loadVoices();
-      window.speechSynthesis.onvoiceschanged = loadVoices;
     }
 
     return () => {
       if (window.speechSynthesis) {
-        window.speechSynthesis.onvoiceschanged = null;
+        window.speechSynthesis.removeEventListener('voiceschanged', loadVoices);
       }
     };
   }, []);
@@ -485,22 +489,22 @@ export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
   }, [coachMutation]);
 
   const getArabicVoice = useCallback(() => {
-    const voices = synthRef.current?.getVoices() || availableVoices;
+    const voices = synthRef.current?.getVoices() || [];
+    const voiceList = voices.length > 0 ? voices : availableVoices;
     
-    const arabicVoice = voices.find(voice => 
+    const googleArabic = voiceList.find(voice => 
+      voice.name.includes('Google') && voice.lang.startsWith('ar')
+    );
+    if (googleArabic) return googleArabic;
+    
+    const arabicVoice = voiceList.find(voice => 
       voice.lang.startsWith('ar') || 
       voice.name.toLowerCase().includes('arab') ||
       voice.name.toLowerCase().includes('arabic')
     );
-    
     if (arabicVoice) return arabicVoice;
     
-    const googleArabic = voices.find(voice => 
-      voice.name.includes('Google') && voice.lang.includes('ar')
-    );
-    if (googleArabic) return googleArabic;
-    
-    return voices.find(voice => voice.default) || voices[0] || null;
+    return voiceList.find(voice => voice.default) || voiceList[0] || null;
   }, [availableVoices]);
 
   const speakResponse = useCallback((text: string) => {
