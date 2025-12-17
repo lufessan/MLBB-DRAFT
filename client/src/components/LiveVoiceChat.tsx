@@ -334,18 +334,29 @@ export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
         voice.name.toLowerCase().includes('arab') ||
         voice.name.toLowerCase().includes('arabic')
       );
-      setHasArabicVoice(!!arabicVoice);
       
       if (arabicVoice) {
+        setHasArabicVoice(true);
         console.log("Arabic voice found:", arabicVoice.name, arabicVoice.lang);
       } else if (voices.length > 0) {
-        console.warn("No Arabic voice found. Available voices:", voices.map(v => `${v.name} (${v.lang})`));
+        setHasArabicVoice(true);
+        console.log("No native Arabic voice, will use available voice with Arabic text. Voices:", voices.slice(0, 5).map(v => `${v.name} (${v.lang})`));
       }
     };
 
     if (window.speechSynthesis) {
       window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
       loadVoices();
+      
+      const checkInterval = setInterval(() => {
+        const voices = window.speechSynthesis.getVoices();
+        if (voices.length > 0) {
+          loadVoices();
+          clearInterval(checkInterval);
+        }
+      }, 100);
+      
+      setTimeout(() => clearInterval(checkInterval), 3000);
     }
 
     return () => {
