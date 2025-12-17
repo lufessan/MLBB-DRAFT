@@ -51,6 +51,27 @@ export const counterSuggestionSchema = z.object({
     emblemTalent: z.string(),
     skillOrder: z.string(),
   }),
+  gamePhaseTips: z.object({
+    earlyGame: z.object({
+      timing: z.string(),
+      strategy: z.string(),
+      farmTips: z.array(z.string()),
+    }),
+    midGame: z.object({
+      timing: z.string(),
+      strategy: z.string(),
+      teamFightTiming: z.string(),
+    }),
+    lateGame: z.object({
+      timing: z.string(),
+      strategy: z.string(),
+      objectivePriority: z.array(z.string()),
+    }),
+  }).optional(),
+  tricks: z.array(z.object({
+    name: z.string(),
+    description: z.string(),
+  })).optional(),
 });
 
 export const coachMessageSchema = z.object({

@@ -1,5 +1,6 @@
-import { Shield, Swords, Package, BookOpen, Sparkles } from "lucide-react";
+import { Shield, Swords, Package, BookOpen, Sparkles, Clock, Target, Zap, TrendingUp, Lightbulb, Trophy } from "lucide-react";
 import type { CounterSuggestion as CounterSuggestionType } from "@shared/schema";
+import { motion } from "framer-motion";
 
 interface CounterSuggestionProps {
   suggestion: CounterSuggestionType;
@@ -12,7 +13,13 @@ export function CounterSuggestion({ suggestion }: CounterSuggestionProps) {
   };
 
   return (
-    <div className="glass-card rounded-2xl p-6 neon-glow-green" data-testid="card-counter-suggestion">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="glass-card rounded-2xl p-6 neon-glow-green" 
+      data-testid="card-counter-suggestion"
+    >
       <div className="flex items-start gap-6 mb-6">
         <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-neon-green/30 to-neon-cyan/30 flex items-center justify-center neon-border-cyan neon-glow-cyan flex-shrink-0">
           <span className="text-3xl font-bold neon-text-cyan">
@@ -59,6 +66,112 @@ export function CounterSuggestion({ suggestion }: CounterSuggestionProps) {
           </ul>
         </div>
 
+        {suggestion.gamePhaseTips && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-5 h-5 text-neon-cyan" />
+              <h3 className="text-lg font-bold neon-text-cyan">نصائح مراحل اللعبة</h3>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-3">
+              {suggestion.gamePhaseTips.earlyGame && (
+                <motion.div 
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="glass p-4 rounded-xl border border-green-500/30"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="w-4 h-4 text-green-400" />
+                    <span className="text-sm font-bold text-green-400">Early Game</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-2">{suggestion.gamePhaseTips.earlyGame.timing}</p>
+                  <p className="text-sm mb-3">{suggestion.gamePhaseTips.earlyGame.strategy}</p>
+                  {suggestion.gamePhaseTips.earlyGame.farmTips && suggestion.gamePhaseTips.earlyGame.farmTips.length > 0 && (
+                    <div className="space-y-1">
+                      <span className="text-xs text-green-400">نصائح الفارم:</span>
+                      {suggestion.gamePhaseTips.earlyGame.farmTips.map((tip, i) => (
+                        <p key={i} className="text-xs text-foreground/70 pr-2">{tip}</p>
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
+              )}
+
+              {suggestion.gamePhaseTips.midGame && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="glass p-4 rounded-xl border border-yellow-500/30"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <Target className="w-4 h-4 text-yellow-400" />
+                    <span className="text-sm font-bold text-yellow-400">Mid Game</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-2">{suggestion.gamePhaseTips.midGame.timing}</p>
+                  <p className="text-sm mb-3">{suggestion.gamePhaseTips.midGame.strategy}</p>
+                  {suggestion.gamePhaseTips.midGame.teamFightTiming && (
+                    <div className="p-2 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                      <span className="text-xs text-yellow-400 block mb-1">وقت التيم فايت:</span>
+                      <p className="text-xs">{suggestion.gamePhaseTips.midGame.teamFightTiming}</p>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+
+              {suggestion.gamePhaseTips.lateGame && (
+                <motion.div 
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="glass p-4 rounded-xl border border-red-500/30"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <Trophy className="w-4 h-4 text-red-400" />
+                    <span className="text-sm font-bold text-red-400">Late Game</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-2">{suggestion.gamePhaseTips.lateGame.timing}</p>
+                  <p className="text-sm mb-3">{suggestion.gamePhaseTips.lateGame.strategy}</p>
+                  {suggestion.gamePhaseTips.lateGame.objectivePriority && suggestion.gamePhaseTips.lateGame.objectivePriority.length > 0 && (
+                    <div className="space-y-1">
+                      <span className="text-xs text-red-400">أولوية الأهداف:</span>
+                      {suggestion.gamePhaseTips.lateGame.objectivePriority.map((obj, i) => (
+                        <p key={i} className="text-xs text-foreground/70 pr-2">{i + 1}. {obj}</p>
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {suggestion.tricks && suggestion.tricks.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="glass p-4 rounded-xl border border-neon-magenta/30"
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <Lightbulb className="w-5 h-5 text-neon-magenta" />
+              <h3 className="text-base font-bold neon-text-magenta">خدع وحيل مميزة</h3>
+            </div>
+            <div className="grid gap-3">
+              {suggestion.tricks.map((trick, index) => (
+                <div key={index} className="p-3 rounded-lg bg-neon-magenta/5 border border-neon-magenta/20">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Zap className="w-4 h-4 text-neon-magenta" />
+                    <span className="text-sm font-semibold text-neon-magenta">{trick.name}</span>
+                  </div>
+                  <p className="text-sm text-foreground/80 pr-6">{trick.description}</p>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
         <div className="glass p-4 rounded-xl">
           <div className="flex items-center gap-2 mb-3">
             <Package className="w-5 h-5 text-neon-orange" />
@@ -104,6 +217,6 @@ export function CounterSuggestion({ suggestion }: CounterSuggestionProps) {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -1,6 +1,99 @@
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+// API Key rotation system for load balancing and reliability
+class ApiKeyManager {
+  private keys: string[];
+  private currentIndex: number = 0;
+  private failedKeys: Map<string, number> = new Map();
+  private readonly cooldownMs = 60000; // 1 minute cooldown
+
+  constructor() {
+    const primaryKey = process.env.GEMINI_API_KEY || "";
+    const additionalKeys = (process.env.GEMINI_API_KEYS || "").split(",").filter(k => k.trim());
+    this.keys = [primaryKey, ...additionalKeys].filter(k => k.length > 0);
+    
+    if (this.keys.length === 0) {
+      console.warn("No Gemini API keys configured!");
+    } else {
+      console.log(`API Key Manager initialized with ${this.keys.length} key(s)`);
+    }
+  }
+
+  getCurrentKey(): string {
+    if (this.keys.length === 0) return "";
+    
+    const now = Date.now();
+    const startIndex = this.currentIndex;
+    
+    // Find a valid key starting from current index
+    do {
+      const key = this.keys[this.currentIndex];
+      const failTime = this.failedKeys.get(key);
+      
+      if (!failTime || now - failTime > this.cooldownMs) {
+        return key;
+      }
+      
+      this.currentIndex = (this.currentIndex + 1) % this.keys.length;
+    } while (this.currentIndex !== startIndex);
+    
+    // All keys are in cooldown, clear oldest and use first key
+    this.failedKeys.clear();
+    this.currentIndex = 0;
+    return this.keys[0];
+  }
+
+  advanceToNextKey(): void {
+    if (this.keys.length > 1) {
+      this.currentIndex = (this.currentIndex + 1) % this.keys.length;
+    }
+  }
+
+  markCurrentKeyFailed(): void {
+    if (this.keys.length === 0) return;
+    const key = this.keys[this.currentIndex];
+    this.failedKeys.set(key, Date.now());
+    console.warn(`API key marked as failed, will retry after cooldown`);
+    this.advanceToNextKey();
+  }
+
+  clearCurrentKeyFailure(): void {
+    if (this.keys.length === 0) return;
+    const key = this.keys[this.currentIndex];
+    this.failedKeys.delete(key);
+  }
+
+  getKeyCount(): number {
+    return this.keys.length;
+  }
+}
+
+const keyManager = new ApiKeyManager();
+
+async function executeWithRetry<T>(operation: (ai: GoogleGenAI) => Promise<T>, maxRetries = 3): Promise<T> {
+  let lastError: Error | null = null;
+  
+  for (let i = 0; i < maxRetries; i++) {
+    const key = keyManager.getCurrentKey();
+    if (!key) {
+      throw new Error("No API keys configured");
+    }
+    
+    const ai = new GoogleGenAI({ apiKey: key });
+    
+    try {
+      const result = await operation(ai);
+      keyManager.clearCurrentKeyFailure();
+      return result;
+    } catch (error) {
+      lastError = error as Error;
+      keyManager.markCurrentKeyFailed();
+      console.error(`API call failed (attempt ${i + 1}/${maxRetries}):`, error);
+    }
+  }
+  
+  throw lastError;
+}
 
 export interface CounterSuggestionResult {
   heroId: string;
@@ -14,6 +107,27 @@ export interface CounterSuggestionResult {
     emblemTalent: string;
     skillOrder: string;
   };
+  gamePhaseTips?: {
+    earlyGame: {
+      timing: string;
+      strategy: string;
+      farmTips: string[];
+    };
+    midGame: {
+      timing: string;
+      strategy: string;
+      teamFightTiming: string;
+    };
+    lateGame: {
+      timing: string;
+      strategy: string;
+      objectivePriority: string[];
+    };
+  };
+  tricks?: Array<{
+    name: string;
+    description: string;
+  }>;
 }
 
 export interface CoachResponse {
@@ -73,7 +187,7 @@ export async function getCounterSuggestion(
     .map((h: any) => `${h.id}: ${h.name} (${h.nameAr}) - ${h.role} - ${h.lane}`)
     .join("\n");
 
-  const promptText = `أنت خبير في لعبة Mobile Legends: Bang Bang. قدم اقتراحاً لأفضل بطل كاونتر.
+  const promptText = `أنت خبير في لعبة Mobile Legends: Bang Bang. قدم اقتراحاً لأفضل بطل كاونتر مع نصائح متقدمة لكل مرحلة من اللعبة.
 
 أبطال العدو: ${enemyHeroNames}
 الممر المفضل للاعب: ${laneName}
@@ -93,36 +207,66 @@ ${availableHeroes}
     "emblem": "اسم الشعار",
     "emblemTalent": "اسم الموهبة",
     "skillOrder": "ترتيب رفع المهارات مثل: 1-2-1-3-1"
-  }
+  },
+  "gamePhaseTips": {
+    "earlyGame": {
+      "timing": "الدقيقة 0 إلى 5",
+      "strategy": "استراتيجية البداية والفوكس على الفارم",
+      "farmTips": ["نصيحة فارم 1", "نصيحة فارم 2", "كيف تسبق العدو في الجولد"]
+    },
+    "midGame": {
+      "timing": "الدقيقة 5 إلى 12",
+      "strategy": "متى تترك اللاين وتشارك في التيم فايت",
+      "teamFightTiming": "متى يكون البطل قوي للمشاركة في التيم فايت (مثلا: بعد الحصول على البند الثاني أو عند المستوى 8)"
+    },
+    "lateGame": {
+      "timing": "بعد الدقيقة 12",
+      "strategy": "كيف تلعب في نهاية اللعبة وتحسم المباراة",
+      "objectivePriority": ["الأهداف المهمة بالترتيب مثل: Lord, Turtle, Tower"]
+    }
+  },
+  "tricks": [
+    {
+      "name": "اسم الخدعة أو الكومبو",
+      "description": "شرح كيفية تنفيذ الخدعة ضد أبطال العدو المختارين"
+    },
+    {
+      "name": "خدعة ثانية",
+      "description": "شرح آخر"
+    }
+  ]
 }`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: promptText }],
+    const result = await executeWithRetry(async (ai) => {
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: promptText }],
+          },
+        ],
+        config: {
+          responseMimeType: "application/json",
         },
-      ],
-      config: {
-        responseMimeType: "application/json",
-      },
+      });
+      return response;
     });
 
-    const text = response.text;
+    const text = result.text;
     if (!text || text.trim() === "") {
       console.error("Gemini returned empty response for counter suggestion");
       return createFallbackSuggestion(heroesData, enemyHeroes, preferredLane);
     }
 
     try {
-      const result = JSON.parse(text);
-      if (!result.heroId || !result.heroName || !result.heroNameAr || !result.reason || !result.combatTips || !result.build) {
-        console.error("Gemini response missing required fields:", result);
+      const parsedResult = JSON.parse(text);
+      if (!parsedResult.heroId || !parsedResult.heroName || !parsedResult.heroNameAr || !parsedResult.reason || !parsedResult.combatTips || !parsedResult.build) {
+        console.error("Gemini response missing required fields:", parsedResult);
         return createFallbackSuggestion(heroesData, enemyHeroes, preferredLane);
       }
-      return result as CounterSuggestionResult;
+      return parsedResult as CounterSuggestionResult;
     } catch (parseError) {
       console.error("Failed to parse Gemini JSON response:", parseError, "Raw text:", text);
       return createFallbackSuggestion(heroesData, enemyHeroes, preferredLane);
@@ -160,17 +304,19 @@ ${historyText ? `المحادثة السابقة:\n${historyText}\n\n` : ""}
 }`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: promptText }],
+    const response = await executeWithRetry(async (ai) => {
+      return await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: promptText }],
+          },
+        ],
+        config: {
+          responseMimeType: "application/json",
         },
-      ],
-      config: {
-        responseMimeType: "application/json",
-      },
+      });
     });
 
     const text = response.text;

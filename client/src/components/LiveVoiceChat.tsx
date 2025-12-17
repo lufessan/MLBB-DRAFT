@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Mic, MicOff, Volume2, VolumeX, Bot, Loader2, Waves, Sparkles, MessageCircle, Trash2 } from "lucide-react";
+import { Mic, MicOff, Volume2, VolumeX, Loader2, Trash2 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import type { Hero } from "@shared/schema";
 import { motion, AnimatePresence } from "framer-motion";
@@ -59,6 +59,209 @@ interface Message {
   timestamp: Date;
 }
 
+type AvatarMood = "idle" | "listening" | "thinking" | "speaking" | "happy" | "excited";
+
+function ReactiveAvatar({ mood, isSpeaking }: { mood: AvatarMood; isSpeaking: boolean }) {
+  const getMoodStyles = () => {
+    switch (mood) {
+      case "listening":
+        return {
+          bgColor: "from-neon-green/30 to-neon-cyan/30",
+          borderColor: "border-neon-green",
+          glowColor: "neon-glow-green",
+          eyeColor: "bg-neon-green",
+          mouthStyle: "happy"
+        };
+      case "thinking":
+        return {
+          bgColor: "from-neon-cyan/30 to-neon-magenta/30",
+          borderColor: "border-neon-cyan",
+          glowColor: "neon-glow-cyan",
+          eyeColor: "bg-neon-cyan",
+          mouthStyle: "thinking"
+        };
+      case "speaking":
+        return {
+          bgColor: "from-neon-magenta/30 to-neon-orange/30",
+          borderColor: "border-neon-magenta",
+          glowColor: "neon-glow-magenta",
+          eyeColor: "bg-neon-magenta",
+          mouthStyle: "speaking"
+        };
+      case "happy":
+        return {
+          bgColor: "from-neon-green/40 to-neon-cyan/40",
+          borderColor: "border-neon-green",
+          glowColor: "neon-glow-green",
+          eyeColor: "bg-neon-green",
+          mouthStyle: "smile"
+        };
+      case "excited":
+        return {
+          bgColor: "from-neon-orange/30 to-neon-magenta/30",
+          borderColor: "border-neon-orange",
+          glowColor: "",
+          eyeColor: "bg-neon-orange",
+          mouthStyle: "excited"
+        };
+      default:
+        return {
+          bgColor: "from-white/10 to-white/5",
+          borderColor: "border-white/20",
+          glowColor: "",
+          eyeColor: "bg-white/50",
+          mouthStyle: "neutral"
+        };
+    }
+  };
+
+  const styles = getMoodStyles();
+
+  return (
+    <div className="relative">
+      <motion.div
+        animate={{
+          scale: mood === "speaking" ? [1, 1.05, 1] : mood === "listening" ? [1, 1.02, 1] : 1,
+        }}
+        transition={{
+          duration: mood === "speaking" ? 0.3 : 1,
+          repeat: mood === "speaking" || mood === "listening" ? Infinity : 0,
+        }}
+        className={`w-40 h-40 rounded-full bg-gradient-to-br ${styles.bgColor} border-2 ${styles.borderColor} ${styles.glowColor} flex items-center justify-center relative overflow-visible`}
+      >
+        {/* Face container */}
+        <div className="relative w-full h-full flex items-center justify-center">
+          {/* Eyes */}
+          <div className="absolute top-12 flex gap-8">
+            {/* Left eye */}
+            <motion.div
+              animate={{
+                scaleY: mood === "speaking" ? [1, 0.8, 1] : mood === "happy" ? 0.3 : 1,
+              }}
+              transition={{ duration: 0.2, repeat: mood === "speaking" ? Infinity : 0 }}
+              className={`w-5 h-5 rounded-full ${styles.eyeColor}`}
+            >
+              {/* Pupil */}
+              <motion.div
+                animate={{
+                  x: mood === "thinking" ? [0, 2, 0, -2, 0] : 0,
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="w-2 h-2 bg-background rounded-full absolute top-1.5 left-1.5"
+              />
+            </motion.div>
+            {/* Right eye */}
+            <motion.div
+              animate={{
+                scaleY: mood === "speaking" ? [1, 0.8, 1] : mood === "happy" ? 0.3 : 1,
+              }}
+              transition={{ duration: 0.2, repeat: mood === "speaking" ? Infinity : 0, delay: 0.1 }}
+              className={`w-5 h-5 rounded-full ${styles.eyeColor}`}
+            >
+              <motion.div
+                animate={{
+                  x: mood === "thinking" ? [0, 2, 0, -2, 0] : 0,
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="w-2 h-2 bg-background rounded-full absolute top-1.5 left-1.5"
+              />
+            </motion.div>
+          </div>
+
+          {/* Mouth */}
+          <div className="absolute bottom-10">
+            {styles.mouthStyle === "speaking" && (
+              <motion.div
+                animate={{
+                  scaleY: [1, 1.5, 0.8, 1.2, 1],
+                  scaleX: [1, 0.9, 1.1, 0.95, 1],
+                }}
+                transition={{ duration: 0.15, repeat: Infinity }}
+                className="w-8 h-4 bg-neon-magenta rounded-full"
+              />
+            )}
+            {styles.mouthStyle === "happy" && (
+              <motion.div
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 0.5, repeat: Infinity }}
+                className="w-10 h-5 border-b-4 border-neon-green rounded-b-full"
+              />
+            )}
+            {styles.mouthStyle === "thinking" && (
+              <motion.div
+                animate={{ x: [-2, 2, -2] }}
+                transition={{ duration: 1, repeat: Infinity }}
+                className="w-6 h-1 bg-neon-cyan rounded-full"
+              />
+            )}
+            {styles.mouthStyle === "neutral" && (
+              <div className="w-6 h-1 bg-white/30 rounded-full" />
+            )}
+            {styles.mouthStyle === "smile" && (
+              <div className="w-10 h-5 border-b-4 border-neon-green rounded-b-full" />
+            )}
+            {styles.mouthStyle === "excited" && (
+              <motion.div
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 0.3, repeat: Infinity }}
+                className="w-6 h-6 bg-neon-orange rounded-full"
+              />
+            )}
+          </div>
+
+          {/* Cheeks when happy */}
+          {(mood === "happy" || mood === "speaking") && (
+            <>
+              <motion.div
+                animate={{ opacity: [0.3, 0.6, 0.3] }}
+                transition={{ duration: 1, repeat: Infinity }}
+                className="absolute top-16 left-4 w-4 h-2 bg-pink-400/40 rounded-full blur-sm"
+              />
+              <motion.div
+                animate={{ opacity: [0.3, 0.6, 0.3] }}
+                transition={{ duration: 1, repeat: Infinity, delay: 0.5 }}
+                className="absolute top-16 right-4 w-4 h-2 bg-pink-400/40 rounded-full blur-sm"
+              />
+            </>
+          )}
+        </div>
+      </motion.div>
+
+      {/* Sound waves when speaking */}
+      {isSpeaking && (
+        <>
+          <motion.div
+            animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
+            transition={{ duration: 1, repeat: Infinity }}
+            className="absolute inset-0 rounded-full border-2 border-neon-magenta/50"
+          />
+          <motion.div
+            animate={{ scale: [1, 1.8, 1], opacity: [0.3, 0, 0.3] }}
+            transition={{ duration: 1, repeat: Infinity, delay: 0.3 }}
+            className="absolute inset-0 rounded-full border border-neon-magenta/30"
+          />
+        </>
+      )}
+
+      {/* Listening indicator */}
+      {mood === "listening" && (
+        <>
+          <motion.div
+            animate={{ scale: [1, 1.3], opacity: [0.8, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            className="absolute inset-0 rounded-full border-2 border-neon-green/50"
+          />
+          <motion.div
+            animate={{ scale: [1, 1.5], opacity: [0.5, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
+            className="absolute inset-0 rounded-full border border-neon-green/30"
+          />
+        </>
+      )}
+    </div>
+  );
+}
+
 export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -67,6 +270,7 @@ export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isSupported, setIsSupported] = useState(true);
   const [shouldContinueListening, setShouldContinueListening] = useState(false);
+  const [avatarMood, setAvatarMood] = useState<AvatarMood>("idle");
   
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
@@ -84,11 +288,22 @@ export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
 
   useEffect(() => {
     isSpeakingRef.current = isSpeaking;
+    if (isSpeaking) {
+      setAvatarMood("speaking");
+    }
   }, [isSpeaking]);
 
   useEffect(() => {
     shouldContinueListeningRef.current = shouldContinueListening;
   }, [shouldContinueListening]);
+
+  useEffect(() => {
+    if (isListening) {
+      setAvatarMood("listening");
+    } else if (!isSpeaking && !isListening && shouldContinueListening) {
+      setAvatarMood("idle");
+    }
+  }, [isListening, isSpeaking, shouldContinueListening]);
 
   const startRecognition = useCallback(() => {
     if (recognitionRef.current && shouldContinueListeningRef.current && !isSpeakingRef.current) {
@@ -172,6 +387,7 @@ export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
 
   const coachMutation = useMutation({
     mutationFn: async (question: string) => {
+      setAvatarMood("thinking");
       const conversationHistory = messages.map(m => ({
         role: m.role === "user" ? "user" : "coach",
         content: m.content
@@ -198,9 +414,12 @@ export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
       };
       
       setMessages(prev => [...prev, userMessage, aiMessage]);
+      setAvatarMood("happy");
       
       if (!isMuted) {
         speakResponse(data.response);
+      } else {
+        setTimeout(() => setAvatarMood("idle"), 2000);
       }
     },
     onError: (_, variables) => {
@@ -220,6 +439,7 @@ export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
       };
       
       setMessages(prev => [...prev, userMessage, aiMessage]);
+      setAvatarMood("idle");
       
       if (!isMuted) {
         speakResponse(errorMsg);
@@ -245,6 +465,7 @@ export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
     
     utterance.onstart = () => {
       setIsSpeaking(true);
+      setAvatarMood("speaking");
       if (recognitionRef.current && isListening) {
         recognitionRef.current.stop();
       }
@@ -252,6 +473,12 @@ export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
     
     utterance.onend = () => {
       setIsSpeaking(false);
+      setAvatarMood("happy");
+      setTimeout(() => {
+        if (!isSpeakingRef.current) {
+          setAvatarMood(shouldContinueListeningRef.current ? "listening" : "idle");
+        }
+      }, 1500);
       if (shouldContinueListening) {
         setTimeout(() => startRecognition(), 300);
       }
@@ -259,6 +486,7 @@ export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
     
     utterance.onerror = () => {
       setIsSpeaking(false);
+      setAvatarMood("idle");
       if (shouldContinueListening) {
         setTimeout(() => startRecognition(), 300);
       }
@@ -274,6 +502,7 @@ export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
         recognitionRef.current.stop();
       }
       setIsListening(false);
+      setAvatarMood("idle");
     } else {
       setShouldContinueListening(true);
       setTranscript("");
@@ -292,6 +521,7 @@ export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
   const clearChat = () => {
     setMessages([]);
     setTranscript("");
+    setAvatarMood("idle");
   };
 
   if (!isSupported) {
@@ -317,7 +547,7 @@ export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
               ? "bg-neon-green/20 neon-border-green" 
               : "bg-white/5 border border-white/10"
           }`}>
-            <Waves className={`w-6 h-6 ${shouldContinueListening ? "text-neon-green animate-pulse" : "text-white/50"}`} />
+            <Mic className={`w-6 h-6 ${shouldContinueListening ? "text-neon-green animate-pulse" : "text-white/50"}`} />
             {shouldContinueListening && (
               <span className="absolute -top-1 -right-1 w-3 h-3 bg-neon-green rounded-full animate-ping" />
             )}
@@ -361,67 +591,44 @@ export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
       </div>
 
       <div className="flex-1 glass-card rounded-2xl overflow-hidden flex flex-col">
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center p-6">
-              <div className="relative mb-6">
-                <div className={`w-32 h-32 rounded-full flex items-center justify-center transition-all duration-500 ${
-                  shouldContinueListening
-                    ? isListening
-                      ? "bg-neon-green/20 neon-border-green neon-glow-green"
-                      : isSpeaking
-                        ? "bg-neon-magenta/20 neon-border-magenta neon-glow-magenta"
-                        : "bg-neon-cyan/20 neon-border-cyan"
-                    : "bg-white/5 border-2 border-dashed border-white/20"
-                }`}>
-                  {coachMutation.isPending ? (
-                    <Loader2 className="w-14 h-14 text-neon-cyan animate-spin" />
-                  ) : isSpeaking ? (
-                    <Bot className="w-14 h-14 text-neon-magenta" />
-                  ) : shouldContinueListening ? (
-                    <Mic className="w-14 h-14 text-neon-green animate-pulse" />
-                  ) : (
-                    <MessageCircle className="w-14 h-14 text-white/30" />
-                  )}
-                </div>
-                
-                {isListening && (
-                  <>
-                    <motion.div 
-                      className="absolute inset-0 rounded-full border-2 border-neon-green/50"
-                      animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    />
-                    <motion.div 
-                      className="absolute inset-0 rounded-full border border-neon-green/30"
-                      animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0, 0.3] }}
-                      transition={{ duration: 2, repeat: Infinity, delay: 0.3 }}
-                    />
-                  </>
-                )}
-              </div>
-              
-              <h3 className="text-lg font-semibold mb-2">
-                {shouldContinueListening ? "أنا أستمع إليك..." : "ابدأ المحادثة الصوتية"}
+        <div className="flex-1 overflow-y-auto p-4">
+          {/* Avatar Section */}
+          <div className="flex flex-col items-center justify-center py-8">
+            <ReactiveAvatar mood={avatarMood} isSpeaking={isSpeaking} />
+            
+            <motion.div
+              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 10 }}
+              className="mt-6 text-center"
+            >
+              <h3 className="text-lg font-semibold mb-1">
+                {avatarMood === "idle" && "مرحبا! أنا المدرب الذكي"}
+                {avatarMood === "listening" && "أنا أستمع إليك..."}
+                {avatarMood === "thinking" && "دقيقة واحدة، أفكر..."}
+                {avatarMood === "speaking" && "استمع لنصيحتي..."}
+                {avatarMood === "happy" && "هذا رائع!"}
               </h3>
-              <p className="text-sm text-muted-foreground max-w-sm">
+              <p className="text-sm text-muted-foreground">
                 {shouldContinueListening 
-                  ? "تحدث بسؤالك وسأرد عليك صوتيا. الميكروفون مفعل ولن يتوقف تلقائيا."
-                  : "اضغط على زر الميكروفون أدناه للبدء في المحادثة الصوتية مع المدرب الذكي"}
+                  ? "تحدث بسؤالك وسأرد عليك صوتيا"
+                  : "اضغط على زر الميكروفون للبدء"}
               </p>
-              
-              {transcript && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-4 glass p-3 rounded-xl max-w-md"
-                >
-                  <p className="text-sm text-neon-green">{transcript}</p>
-                </motion.div>
-              )}
-            </div>
-          ) : (
-            <>
+            </motion.div>
+
+            {transcript && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 glass p-3 rounded-xl max-w-md"
+              >
+                <p className="text-sm text-neon-green">{transcript}</p>
+              </motion.div>
+            )}
+          </div>
+
+          {/* Messages */}
+          {messages.length > 0 && (
+            <div className="space-y-4 border-t border-white/10 pt-4 mt-4">
               <AnimatePresence>
                 {messages.map((message) => (
                   <motion.div
@@ -442,7 +649,7 @@ export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
                           {message.role === "user" ? (
                             <Mic className="w-4 h-4 text-neon-cyan" />
                           ) : (
-                            <Sparkles className="w-4 h-4 text-neon-magenta" />
+                            <span className="text-xs">AI</span>
                           )}
                         </div>
                         
@@ -475,20 +682,8 @@ export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
                 </motion.div>
               )}
               
-              {transcript && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex justify-end"
-                >
-                  <div className="bg-neon-green/10 border border-neon-green/30 rounded-2xl px-4 py-3 max-w-[80%]">
-                    <p className="text-sm text-neon-green animate-pulse">{transcript}...</p>
-                  </div>
-                </motion.div>
-              )}
-              
               <div ref={messagesEndRef} />
-            </>
+            </div>
           )}
         </div>
 
