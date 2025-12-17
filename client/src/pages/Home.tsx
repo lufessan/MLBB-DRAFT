@@ -5,7 +5,7 @@ import { SnowCanvas } from "@/components/SnowCanvas";
 import { Header } from "@/components/Header";
 import { DraftAssistant } from "@/components/DraftAssistant";
 import { GeminiCoach } from "@/components/GeminiCoach";
-import { GeminiLiveChat } from "@/components/GeminiLiveChat";
+import { VoiceAssistant } from "@/components/VoiceAssistant";
 import { MetaHeroes } from "@/components/MetaHeroes";
 import type { ChampionsData } from "@shared/schema";
 
@@ -61,7 +61,7 @@ export default function Home() {
             <GeminiCoach heroes={championsData.heroes} />
           )}
           {activeTab === "chat" && (
-            <GeminiLiveChat heroes={championsData.heroes} />
+            <VoiceAssistant heroes={championsData.heroes} />
           )}
         </main>
       </div>
