@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Loader2, Sparkles, AlertCircle } from "lucide-react";
+import { Loader2, Sparkles, AlertCircle, Volume2, VolumeX } from "lucide-react";
 import { HeroSelector } from "./HeroSelector";
 import { LaneSelector } from "./LaneSelector";
 import { CounterSuggestion } from "./CounterSuggestion";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 import { apiRequest } from "@/lib/queryClient";
 import type { Hero, Lane, CounterSuggestion as CounterSuggestionType } from "@shared/schema";
 
@@ -16,6 +17,25 @@ interface DraftAssistantProps {
 export function DraftAssistant({ heroes, lanes }: DraftAssistantProps) {
   const [selectedEnemies, setSelectedEnemies] = useState<string[]>([]);
   const [selectedLane, setSelectedLane] = useState<string | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState(80);
+  const synthRef = useRef<SpeechSynthesis | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      synthRef.current = window.speechSynthesis;
+    }
+  }, []);
+
+  const speakText = (text: string) => {
+    if (!synthRef.current || isMuted) return;
+    synthRef.current.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "ar-SA";
+    utterance.volume = volume / 100;
+    utterance.rate = 1.2;
+    synthRef.current.speak(utterance);
+  };
 
   const counterMutation = useMutation({
     mutationFn: async () => {
@@ -38,13 +58,43 @@ export function DraftAssistant({ heroes, lanes }: DraftAssistantProps) {
   return (
     <div className="space-y-6">
       <div className="glass-card rounded-2xl p-6 space-y-6" data-testid="section-draft-input">
-        <div className="flex items-center gap-3 pb-4 border-b border-white/10">
-          <div className="p-2 rounded-xl bg-neon-cyan/10 neon-border-cyan">
-            <Sparkles className="w-5 h-5 text-neon-cyan" />
+        <div className="flex items-center justify-between gap-3 pb-4 border-b border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-neon-cyan/10 neon-border-cyan">
+              <Sparkles className="w-5 h-5 text-neon-cyan" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold">مساعد اختيار البطل</h2>
+              <p className="text-sm text-muted-foreground">أدخل أبطال العدو واختر ممرك للحصول على أفضل كاونتر</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-lg font-bold">مساعد اختيار البطل</h2>
-            <p className="text-sm text-muted-foreground">أدخل أبطال العدو واختر ممرك للحصول على أفضل كاونتر</p>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10">
+              <Slider
+                value={[volume]}
+                onValueChange={(v) => setVolume(v[0])}
+                max={100}
+                step={1}
+                className="w-20"
+                disabled={isMuted}
+                data-testid="slider-volume"
+              />
+              <span className="text-xs text-muted-foreground w-8">{volume}%</span>
+            </div>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => {
+                setIsMuted(!isMuted);
+                if (synthRef.current) {
+                  synthRef.current.cancel();
+                }
+              }}
+              className={`${isMuted ? "text-red-400" : "text-neon-cyan"}`}
+              data-testid="button-mute"
+            >
+              {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+            </Button>
           </div>
         </div>
 
@@ -93,7 +143,7 @@ export function DraftAssistant({ heroes, lanes }: DraftAssistantProps) {
         </div>
       )}
 
-      {counterMutation.data && <CounterSuggestion suggestion={counterMutation.data} />}
+      {counterMutation.data && <CounterSuggestion suggestion={counterMutation.data} onSpeak={speakText} />}
     </div>
   );
 }

@@ -1,10 +1,10 @@
-import { Gamepad2, MessageCircle, Sparkles } from "lucide-react";
+import { Gamepad2, MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import mlLogo from "@assets/13_1765989336653.png";
 
 interface HeaderProps {
-  activeTab: "draft" | "coach" | "chat";
-  onTabChange: (tab: "draft" | "coach" | "chat") => void;
+  activeTab: "draft" | "coach";
+  onTabChange: (tab: "draft" | "coach") => void;
 }
 
 export function Header({ activeTab, onTabChange }: HeaderProps) {
@@ -70,18 +70,6 @@ export function Header({ activeTab, onTabChange }: HeaderProps) {
             >
               <MessageCircle className="w-4 h-4" />
               <span>المدرب الذكي</span>
-            </button>
-            <button
-              onClick={() => onTabChange("chat")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 backdrop-blur-md ${
-                activeTab === "chat"
-                  ? "bg-neon-purple/30 neon-border-purple text-neon-purple neon-glow-purple"
-                  : "bg-background/60 border border-white/20 text-white hover:bg-background/80"
-              }`}
-              data-testid="button-tab-chat"
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>الخبير الأسطوري</span>
             </button>
           </nav>
         </div>

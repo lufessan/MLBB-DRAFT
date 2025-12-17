@@ -304,11 +304,7 @@ function getCurrentDateArabic(): string {
 }
 
 function getCurrentSeason(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
-  const seasonNumber = 31 + Math.floor((year - 2024) * 6 + Math.floor(month / 2));
-  return `Season ${seasonNumber}`;
+  return `Season 38`;
 }
 
 export async function getMetaHeroes(heroesData: any[]): Promise<MetaHeroResult> {

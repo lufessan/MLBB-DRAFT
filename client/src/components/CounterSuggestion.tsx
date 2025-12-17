@@ -1,12 +1,20 @@
+import { useEffect } from "react";
 import { Shield, Swords, Package, BookOpen, Sparkles, Clock, Target, Zap, TrendingUp, Lightbulb, Trophy } from "lucide-react";
 import type { CounterSuggestion as CounterSuggestionType } from "@shared/schema";
 import { motion } from "framer-motion";
 
 interface CounterSuggestionProps {
   suggestion: CounterSuggestionType;
+  onSpeak?: (text: string) => void;
 }
 
-export function CounterSuggestion({ suggestion }: CounterSuggestionProps) {
+export function CounterSuggestion({ suggestion, onSpeak }: CounterSuggestionProps) {
+  useEffect(() => {
+    if (onSpeak && suggestion) {
+      const text = `البطل المقترح هو ${suggestion.heroNameAr}. ${suggestion.reason}`;
+      onSpeak(text);
+    }
+  }, [suggestion, onSpeak]);
   const getHeroInitials = (name?: string) => {
     if (!name) return "??";
     return name.substring(0, 2).toUpperCase();
