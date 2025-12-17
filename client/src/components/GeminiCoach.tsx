@@ -27,12 +27,18 @@ export function GeminiCoach({ heroes }: GeminiCoachProps) {
         question,
         conversationHistory: messages,
       });
-      return response as { response: string; heroMentioned?: string };
+      return await response.json() as { response: string; heroMentioned?: string };
     },
     onSuccess: (data) => {
       setMessages((prev) => [
         ...prev,
         { role: "coach", content: data.response, heroMentioned: data.heroMentioned },
+      ]);
+    },
+    onError: () => {
+      setMessages((prev) => [
+        ...prev,
+        { role: "coach", content: "عذراً، حدث خطأ في الاتصال بالمدرب الذكي. يرجى المحاولة مرة أخرى." },
       ]);
     },
   });
@@ -53,7 +59,8 @@ export function GeminiCoach({ heroes }: GeminiCoachProps) {
     }
   };
 
-  const getHeroInitials = (name: string) => {
+  const getHeroInitials = (name?: string) => {
+    if (!name) return "??";
     return name.substring(0, 2).toUpperCase();
   };
 

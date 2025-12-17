@@ -6,7 +6,8 @@ interface CounterSuggestionProps {
 }
 
 export function CounterSuggestion({ suggestion }: CounterSuggestionProps) {
-  const getHeroInitials = (name: string) => {
+  const getHeroInitials = (name?: string) => {
+    if (!name) return "??";
     return name.substring(0, 2).toUpperCase();
   };
 

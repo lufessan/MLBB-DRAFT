@@ -23,7 +23,7 @@ export function DraftAssistant({ heroes, lanes }: DraftAssistantProps) {
         enemyHeroes: selectedEnemies,
         preferredLane: selectedLane,
       });
-      return response as CounterSuggestionType;
+      return await response.json() as CounterSuggestionType;
     },
   });
 
