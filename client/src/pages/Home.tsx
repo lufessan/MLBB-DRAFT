@@ -6,6 +6,7 @@ import { Header } from "@/components/Header";
 import { DraftAssistant } from "@/components/DraftAssistant";
 import { GeminiCoach } from "@/components/GeminiCoach";
 import { LiveVoiceChat } from "@/components/LiveVoiceChat";
+import { MetaHeroes } from "@/components/MetaHeroes";
 import type { ChampionsData } from "@shared/schema";
 
 export default function Home() {
@@ -51,7 +52,10 @@ export default function Home() {
         <Header activeTab={activeTab} onTabChange={setActiveTab} />
         <main className="max-w-4xl mx-auto px-4 py-8">
           {activeTab === "draft" && (
-            <DraftAssistant heroes={championsData.heroes} lanes={championsData.lanes} />
+            <div className="space-y-6">
+              <DraftAssistant heroes={championsData.heroes} lanes={championsData.lanes} />
+              <MetaHeroes heroes={championsData.heroes} />
+            </div>
           )}
           {activeTab === "coach" && (
             <GeminiCoach heroes={championsData.heroes} />

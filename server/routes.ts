@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import * as fs from "fs";
 import * as path from "path";
-import { getCounterSuggestion, getCoachResponse } from "./gemini";
+import { getCounterSuggestion, getCoachResponse, getMetaHeroes } from "./gemini";
 import { counterRequestSchema, coachRequestSchema } from "@shared/schema";
 
 let championsData: any = null;
@@ -29,6 +29,31 @@ export async function registerRoutes(
   app.get("/api/heroes", (_req, res) => {
     const data = loadChampionsData();
     res.json(data);
+  });
+
+  // Cache for meta heroes (refresh every 24 hours)
+  let metaHeroesCache: any = null;
+  let metaHeroesCacheTime: number = 0;
+  const META_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+
+  app.get("/api/meta-heroes", async (_req, res) => {
+    try {
+      const now = Date.now();
+      if (metaHeroesCache && now - metaHeroesCacheTime < META_CACHE_DURATION) {
+        return res.json(metaHeroesCache);
+      }
+
+      const data = loadChampionsData();
+      const metaHeroes = await getMetaHeroes(data.heroes);
+      
+      metaHeroesCache = metaHeroes;
+      metaHeroesCacheTime = now;
+      
+      res.json(metaHeroes);
+    } catch (error) {
+      console.error("Meta heroes error:", error);
+      res.status(500).json({ error: "Failed to get meta heroes" });
+    }
   });
 
   app.post("/api/counter", async (req, res) => {

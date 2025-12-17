@@ -277,6 +277,107 @@ ${availableHeroes}
   }
 }
 
+export interface MetaHeroResult {
+  heroes: Array<{
+    heroId: string;
+    tier: "S" | "A" | "B";
+    reason: string;
+  }>;
+  lastUpdated: string;
+  season: string;
+}
+
+export async function getMetaHeroes(heroesData: any[]): Promise<MetaHeroResult> {
+  const heroList = heroesData
+    .slice(0, 80)
+    .map((h: any) => `${h.id}: ${h.name} (${h.nameAr}) - ${h.role} - ${h.lane}`)
+    .join("\n");
+
+  const promptText = `أنت خبير في لعبة Mobile Legends: Bang Bang. قدم قائمة بأقوى 15 بطل في الميتا الحالية لسيزون ديسمبر 2024.
+
+الأبطال المتاحة:
+${heroList}
+
+قدم إجابتك بصيغة JSON التالية:
+{
+  "heroes": [
+    {"heroId": "معرف البطل", "tier": "S أو A أو B", "reason": "سبب قوته في الميتا الحالية"},
+    ...
+  ],
+  "lastUpdated": "ديسمبر 2024",
+  "season": "Season 31"
+}
+
+قواعد:
+- اختر 15 بطل فقط من الأقوى
+- 5 أبطال S-Tier (الأقوى)
+- 5 أبطال A-Tier (قوي جداً)
+- 5 أبطال B-Tier (قوي)
+- استخدم heroId من القائمة بالضبط
+- السبب يجب أن يكون جملة واحدة قصيرة بالعربية`;
+
+  try {
+    const result = await executeWithRetry(async (ai) => {
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: promptText }],
+          },
+        ],
+        config: {
+          responseMimeType: "application/json",
+        },
+      });
+      return response;
+    });
+
+    const text = result.text;
+    if (!text || text.trim() === "") {
+      return getDefaultMetaHeroes();
+    }
+
+    try {
+      const parsedResult = JSON.parse(text);
+      if (!parsedResult.heroes || !Array.isArray(parsedResult.heroes)) {
+        return getDefaultMetaHeroes();
+      }
+      return parsedResult as MetaHeroResult;
+    } catch (parseError) {
+      console.error("Failed to parse meta heroes JSON:", parseError);
+      return getDefaultMetaHeroes();
+    }
+  } catch (error) {
+    console.error("Gemini meta heroes API error:", error);
+    return getDefaultMetaHeroes();
+  }
+}
+
+function getDefaultMetaHeroes(): MetaHeroResult {
+  return {
+    heroes: [
+      { heroId: "ling", tier: "S", reason: "قدرة عالية على التنقل والقتل السريع" },
+      { heroId: "fanny", tier: "S", reason: "أقوى جانجلر في اللعبة" },
+      { heroId: "wanwan", tier: "S", reason: "ضرر عالي ومناعة من الكراود كنترول" },
+      { heroId: "valentina", tier: "S", reason: "قدرة على نسخ ألتميت أي بطل" },
+      { heroId: "khufra", tier: "S", reason: "أفضل تانك للكاونتر" },
+      { heroId: "beatrix", tier: "A", reason: "تنوع كبير في أسلوب اللعب" },
+      { heroId: "lancelot", tier: "A", reason: "قدرة عالية على الهروب والقتل" },
+      { heroId: "kagura", tier: "A", reason: "ضرر عالي وتحكم ممتاز" },
+      { heroId: "chou", tier: "A", reason: "تنوع في الأدوار والكومبو القوي" },
+      { heroId: "franco", tier: "A", reason: "هوك قوي يغير مجرى المعركة" },
+      { heroId: "esmeralda", tier: "B", reason: "درع قوي وضرر مستمر" },
+      { heroId: "yu_zhong", tier: "B", reason: "تحمل عالي وضرر ممتاز" },
+      { heroId: "mathilda", tier: "B", reason: "دعم ممتاز مع حركة سريعة" },
+      { heroId: "xavier", tier: "B", reason: "ضرر عالي من مسافة بعيدة" },
+      { heroId: "julian", tier: "B", reason: "مرونة عالية في المهارات" },
+    ],
+    lastUpdated: "ديسمبر 2024",
+    season: "Season 31",
+  };
+}
+
 export async function getCoachResponse(
   question: string,
   conversationHistory: Array<{ role: string; content: string }> = []
