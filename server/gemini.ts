@@ -287,13 +287,33 @@ export interface MetaHeroResult {
   season: string;
 }
 
+function getCurrentDateArabic(): string {
+  const months = [
+    "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
+    "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"
+  ];
+  const now = new Date();
+  return `${months[now.getMonth()]} ${now.getFullYear()}`;
+}
+
+function getCurrentSeason(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const seasonNumber = 31 + Math.floor((year - 2024) * 6 + Math.floor(month / 2));
+  return `Season ${seasonNumber}`;
+}
+
 export async function getMetaHeroes(heroesData: any[]): Promise<MetaHeroResult> {
   const heroList = heroesData
     .slice(0, 80)
     .map((h: any) => `${h.id}: ${h.name} (${h.nameAr}) - ${h.role} - ${h.lane}`)
     .join("\n");
 
-  const promptText = `أنت خبير في لعبة Mobile Legends: Bang Bang. قدم قائمة بأقوى 15 بطل في الميتا الحالية لسيزون ديسمبر 2024.
+  const currentDate = getCurrentDateArabic();
+  const currentSeason = getCurrentSeason();
+
+  const promptText = `أنت خبير في لعبة Mobile Legends: Bang Bang. قدم قائمة بأقوى 15 بطل في الميتا الحالية لسيزون ${currentDate}.
 
 الأبطال المتاحة:
 ${heroList}
@@ -304,8 +324,8 @@ ${heroList}
     {"heroId": "معرف البطل", "tier": "S أو A أو B", "reason": "سبب قوته في الميتا الحالية"},
     ...
   ],
-  "lastUpdated": "ديسمبر 2024",
-  "season": "Season 31"
+  "lastUpdated": "${currentDate}",
+  "season": "${currentSeason}"
 }
 
 قواعد:
@@ -373,8 +393,8 @@ function getDefaultMetaHeroes(): MetaHeroResult {
       { heroId: "xavier", tier: "B", reason: "ضرر عالي من مسافة بعيدة" },
       { heroId: "julian", tier: "B", reason: "مرونة عالية في المهارات" },
     ],
-    lastUpdated: "ديسمبر 2024",
-    season: "Season 31",
+    lastUpdated: getCurrentDateArabic(),
+    season: getCurrentSeason(),
   };
 }
 
