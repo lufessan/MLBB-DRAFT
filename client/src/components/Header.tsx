@@ -9,7 +9,7 @@ interface HeaderProps {
 
 export function Header({ activeTab, onTabChange }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-50 border-b border-neon-cyan/20 relative overflow-hidden">
+    <header className="fixed top-0 left-0 right-0 z-50 border-b border-neon-cyan/20 overflow-hidden">
       <img 
         src={mlLogo} 
         alt="" 

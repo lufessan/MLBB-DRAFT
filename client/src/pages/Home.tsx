@@ -49,7 +49,7 @@ export default function Home() {
       <SnowCanvas />
       <div className="relative z-10">
         <Header activeTab={activeTab} onTabChange={setActiveTab} />
-        <main className="max-w-4xl mx-auto px-4 py-8">
+        <main className="max-w-4xl mx-auto px-4 py-8 pt-28 md:pt-32">
           {activeTab === "draft" && (
             <div className="space-y-6">
               <DraftAssistant heroes={championsData.heroes} lanes={championsData.lanes} />
