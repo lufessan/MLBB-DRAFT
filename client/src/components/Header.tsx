@@ -9,20 +9,32 @@ interface HeaderProps {
 
 export function Header({ activeTab, onTabChange }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-50 border-b border-neon-cyan/20 bg-background/60 backdrop-blur-xl">
-      <div className="max-w-6xl mx-auto px-4 py-3">
+    <header className="sticky top-0 z-50 border-b border-neon-cyan/20 relative overflow-hidden">
+      <img 
+        src={mlLogo} 
+        alt="" 
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{
+          filter: "brightness(0.3) blur(1px)",
+        }}
+        aria-hidden="true"
+      />
+      <div 
+        className="absolute inset-0 bg-gradient-to-l from-background/80 via-background/60 to-transparent"
+      />
+      <div 
+        className="absolute inset-0"
+        style={{
+          background: "linear-gradient(180deg, rgba(0, 255, 255, 0.05) 0%, transparent 50%, rgba(0, 255, 136, 0.05) 100%)",
+        }}
+      />
+      <div className="relative max-w-6xl mx-auto px-4 py-3">
         <div className="flex items-center justify-between gap-4">
           <motion.div 
             className="relative flex items-center justify-center"
             whileHover={{ scale: 1.02 }}
             transition={{ type: "spring", stiffness: 300 }}
           >
-            <div 
-              className="absolute inset-0 rounded-xl blur-lg opacity-60"
-              style={{
-                background: "linear-gradient(135deg, rgba(0, 255, 255, 0.3), rgba(0, 255, 136, 0.2))",
-              }}
-            />
             <img 
               src={mlLogo} 
               alt="Mobile Legends Bang Bang" 
