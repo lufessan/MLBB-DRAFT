@@ -277,6 +277,7 @@ export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isSpeakingRef = useRef(false);
   const shouldContinueListeningRef = useRef(false);
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -318,6 +319,24 @@ export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
         }, 100);
       }
     }
+  }, []);
+
+  useEffect(() => {
+    const loadVoices = () => {
+      const voices = window.speechSynthesis.getVoices();
+      setAvailableVoices(voices);
+    };
+
+    if (window.speechSynthesis) {
+      loadVoices();
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    return () => {
+      if (window.speechSynthesis) {
+        window.speechSynthesis.onvoiceschanged = null;
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -453,15 +472,43 @@ export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
     }
   }, [coachMutation]);
 
-  const speakResponse = (text: string) => {
+  const getArabicVoice = useCallback(() => {
+    const voices = synthRef.current?.getVoices() || availableVoices;
+    
+    const arabicVoice = voices.find(voice => 
+      voice.lang.startsWith('ar') || 
+      voice.name.toLowerCase().includes('arab') ||
+      voice.name.toLowerCase().includes('arabic')
+    );
+    
+    if (arabicVoice) return arabicVoice;
+    
+    const googleArabic = voices.find(voice => 
+      voice.name.includes('Google') && voice.lang.includes('ar')
+    );
+    if (googleArabic) return googleArabic;
+    
+    return voices.find(voice => voice.default) || voices[0] || null;
+  }, [availableVoices]);
+
+  const speakResponse = useCallback((text: string) => {
     if (!synthRef.current) return;
     
     synthRef.current.cancel();
     
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "ar-SA";
+    
+    const selectedVoice = getArabicVoice();
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+      utterance.lang = selectedVoice.lang;
+    } else {
+      utterance.lang = "ar-SA";
+    }
+    
     utterance.rate = 0.95;
     utterance.pitch = 1;
+    utterance.volume = 1;
     
     utterance.onstart = () => {
       setIsSpeaking(true);
@@ -484,7 +531,8 @@ export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
       }
     };
     
-    utterance.onerror = () => {
+    utterance.onerror = (event) => {
+      console.error("Speech synthesis error:", event);
       setIsSpeaking(false);
       setAvatarMood("idle");
       if (shouldContinueListening) {
@@ -493,7 +541,7 @@ export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
     };
     
     synthRef.current.speak(utterance);
-  };
+  }, [getArabicVoice, isListening, shouldContinueListening, startRecognition]);
 
   const toggleListening = () => {
     if (shouldContinueListening) {
