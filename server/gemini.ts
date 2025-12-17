@@ -8,9 +8,16 @@ class ApiKeyManager {
   private readonly cooldownMs = 60000; // 1 minute cooldown
 
   constructor() {
-    const primaryKey = process.env.GEMINI_API_KEY || "";
+    const keyEnvVars = [
+      process.env.GEMINI_API_KEY_1 || "",
+      process.env.GEMINI_API_KEY_2 || "",
+      process.env.GEMINI_API_KEY_3 || "",
+      process.env.GEMINI_API_KEY_4 || "",
+      process.env.GEMINI_API_KEY_5 || "",
+      process.env.GEMINI_API_KEY || "",
+    ];
     const additionalKeys = (process.env.GEMINI_API_KEYS || "").split(",").filter(k => k.trim());
-    this.keys = [primaryKey, ...additionalKeys].filter(k => k.length > 0);
+    this.keys = [...keyEnvVars, ...additionalKeys].filter(k => k.length > 0);
     
     if (this.keys.length === 0) {
       console.warn("No Gemini API keys configured!");
