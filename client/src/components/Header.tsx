@@ -1,8 +1,8 @@
-import { Gamepad2, MessageCircle, Shield } from "lucide-react";
+import { Gamepad2, MessageCircle, Shield, Radio } from "lucide-react";
 
 interface HeaderProps {
-  activeTab: "draft" | "coach";
-  onTabChange: (tab: "draft" | "coach") => void;
+  activeTab: "draft" | "coach" | "live";
+  onTabChange: (tab: "draft" | "coach" | "live") => void;
 }
 
 export function Header({ activeTab, onTabChange }: HeaderProps) {
@@ -46,6 +46,18 @@ export function Header({ activeTab, onTabChange }: HeaderProps) {
             >
               <MessageCircle className="w-4 h-4" />
               <span>المدرب الذكي</span>
+            </button>
+            <button
+              onClick={() => onTabChange("live")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 ${
+                activeTab === "live"
+                  ? "bg-neon-green/20 neon-border-green text-neon-green neon-glow-green"
+                  : "bg-white/5 border border-white/10 text-muted-foreground hover:bg-white/10"
+              }`}
+              data-testid="button-tab-live"
+            >
+              <Radio className="w-4 h-4" />
+              <span>LIVE</span>
             </button>
           </nav>
         </div>

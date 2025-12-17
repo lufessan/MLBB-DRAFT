@@ -5,10 +5,11 @@ import { SnowCanvas } from "@/components/SnowCanvas";
 import { Header } from "@/components/Header";
 import { DraftAssistant } from "@/components/DraftAssistant";
 import { GeminiCoach } from "@/components/GeminiCoach";
+import { LiveVoiceChat } from "@/components/LiveVoiceChat";
 import type { ChampionsData } from "@shared/schema";
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<"draft" | "coach">("draft");
+  const [activeTab, setActiveTab] = useState<"draft" | "coach" | "live">("draft");
 
   const { data: championsData, isLoading, isError } = useQuery<ChampionsData>({
     queryKey: ["/api/heroes"],
@@ -49,10 +50,14 @@ export default function Home() {
       <div className="relative z-10">
         <Header activeTab={activeTab} onTabChange={setActiveTab} />
         <main className="max-w-4xl mx-auto px-4 py-8">
-          {activeTab === "draft" ? (
+          {activeTab === "draft" && (
             <DraftAssistant heroes={championsData.heroes} lanes={championsData.lanes} />
-          ) : (
+          )}
+          {activeTab === "coach" && (
             <GeminiCoach heroes={championsData.heroes} />
+          )}
+          {activeTab === "live" && (
+            <LiveVoiceChat heroes={championsData.heroes} />
           )}
         </main>
       </div>
