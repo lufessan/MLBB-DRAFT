@@ -181,15 +181,18 @@ export function CounterSuggestion({ suggestion }: CounterSuggestionProps) {
           </div>
           <div className="grid gap-3" data-testid="section-build">
             <div>
-              <span className="text-xs text-muted-foreground block mb-1.5">العناصر</span>
+              <span className="text-xs text-muted-foreground block mb-1.5">العناصر (بالترتيب من الأول للأخير)</span>
               <div className="flex flex-wrap gap-2">
                 {suggestion.build.items.map((item, index) => (
-                  <span
+                  <div
                     key={index}
-                    className="px-3 py-1.5 rounded-lg bg-neon-orange/10 border border-neon-orange/30 text-xs"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neon-orange/10 border border-neon-orange/30 text-xs"
                   >
-                    {item}
-                  </span>
+                    <span className="w-5 h-5 rounded-full bg-neon-orange/30 flex items-center justify-center text-[10px] font-bold text-neon-orange flex-shrink-0">
+                      {index + 1}
+                    </span>
+                    <span>{item}</span>
+                  </div>
                 ))}
               </div>
             </div>

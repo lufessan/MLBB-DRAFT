@@ -271,6 +271,7 @@ export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
   const [isSupported, setIsSupported] = useState(true);
   const [shouldContinueListening, setShouldContinueListening] = useState(false);
   const [avatarMood, setAvatarMood] = useState<AvatarMood>("idle");
+  const [hasArabicVoice, setHasArabicVoice] = useState(true);
   
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
@@ -325,6 +326,17 @@ export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
     const loadVoices = () => {
       const voices = window.speechSynthesis.getVoices();
       setAvailableVoices(voices);
+      
+      const arabicVoice = voices.find(voice => 
+        voice.lang.startsWith('ar') || 
+        voice.name.toLowerCase().includes('arab') ||
+        voice.name.toLowerCase().includes('arabic')
+      );
+      setHasArabicVoice(!!arabicVoice);
+      
+      if (!arabicVoice && voices.length > 0) {
+        console.warn("No Arabic voice found. Available voices:", voices.map(v => `${v.name} (${v.lang})`));
+      }
     };
 
     if (window.speechSynthesis) {
@@ -502,11 +514,13 @@ export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
     if (selectedVoice) {
       utterance.voice = selectedVoice;
       utterance.lang = selectedVoice.lang;
+      console.log("Using voice:", selectedVoice.name, selectedVoice.lang);
     } else {
       utterance.lang = "ar-SA";
+      console.log("No specific voice found, using default with lang ar-SA");
     }
     
-    utterance.rate = 0.95;
+    utterance.rate = 0.9;
     utterance.pitch = 1;
     utterance.volume = 1;
     
@@ -637,6 +651,12 @@ export function LiveVoiceChat({ heroes }: LiveVoiceChatProps) {
           </button>
         </div>
       </div>
+
+      {!hasArabicVoice && !isMuted && (
+        <div className="mb-4 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-sm text-yellow-200">
+          <span className="font-semibold">تنبيه:</span> لا يتوفر صوت عربي في متصفحك. سيتم عرض الردود كتابياً. للحصول على أفضل تجربة صوتية، استخدم متصفح Chrome على الكمبيوتر.
+        </div>
+      )}
 
       <div className="flex-1 glass-card rounded-2xl overflow-hidden flex flex-col">
         <div className="flex-1 overflow-y-auto p-4">
